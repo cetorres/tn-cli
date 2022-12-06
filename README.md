@@ -48,5 +48,3 @@ The project needs help with these items.
 ## Preview
 
 ![Preview](screenshot.png)
-
-[![asciicast](https://asciinema.org/a/UynC0sC8KUgo9jABZ0xQKBiaM.svg)](https://asciinema.org/a/UynC0sC8KUgo9jABZ0xQKBiaM)
