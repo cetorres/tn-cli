@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	markdown "github.com/MichaelMure/go-term-markdown"
@@ -22,7 +23,7 @@ const (
 	LIST_VIEW			 = "list"
 	READER_VIEW		 = "reader"
 	READER_PADDING = 1
-	PAGE_SIZE			 = 30
+	PAGE_SIZE			 = 40
 )
 
 type Content struct {
@@ -80,7 +81,7 @@ func DownloadContent() ([]Content, error) {
 	}
 
 	// Perform HTTP request to load results
-	resp, err := http.Get(fmt.Sprintf("%s%s%d", URL_CONTENTS, "?page=", currentPage))
+	resp, err := http.Get(fmt.Sprintf("%s%s%d%s%d", URL_CONTENTS, "?per_page=", PAGE_SIZE, "&page=", currentPage))
 
 	if err != nil {
 		return nil, err
@@ -141,18 +142,6 @@ func setCurrentViewOnTop(g *gocui.Gui, name string) (*gocui.View, error) {
 	return g.SetViewOnTop(name)
 }
 
-func nextView(g *gocui.Gui, v *gocui.View) error {
-	nextIndex := (active + 1) % len(viewArr)
-	name := viewArr[nextIndex]
-
-	if _, err := setCurrentViewOnTop(g, name); err != nil {
-		return err
-	}
-
-	active = nextIndex
-	return nil
-}
-
 func selectView(g *gocui.Gui, v *gocui.View, viewId int) error {
 	name := viewArr[viewId]
 
@@ -160,8 +149,19 @@ func selectView(g *gocui.Gui, v *gocui.View, viewId int) error {
 		return err
 	}
 
+	if viewId == 0 {
+		g.Cursor = false
+	} else {
+		g.Cursor = true
+	}
+
 	active = viewId
 	return nil
+}
+
+func nextView(g *gocui.Gui, v *gocui.View) error {
+	nextIndex := (active + 1) % len(viewArr)
+	return selectView(g, v, nextIndex)
 }
 
 func selectListView(g *gocui.Gui, v *gocui.View) error {
@@ -216,7 +216,7 @@ func UpdateList(g *gocui.Gui, v0 *gocui.View) error {
 
 func LoadList(g *gocui.Gui, v *gocui.View) error {
 	v.Clear()
-
+	v.Highlight = false
 	fmt.Fprintln(v, "Carregando...")
 
 	g.Update(func(g *gocui.Gui) error {
@@ -236,8 +236,15 @@ func LoadList(g *gocui.Gui, v *gocui.View) error {
 			return err
 		}
 
+		v.Highlight = true
+		v.SelBgColor = gocui.ColorGreen
+		v.SelFgColor = gocui.ColorBlack
+
 		for i, item := range contents {
-			s := fmt.Sprintf("%d. %v", ((i+1) + ((currentPage-1)*PAGE_SIZE)), item.Title)
+			maxW, _ := v.Size()
+			idStr := fmt.Sprintf("%d. ", ((i+1) + ((currentPage-1)*PAGE_SIZE)))
+			spacesToAdd := strings.Repeat(" ", maxW)
+			s := fmt.Sprintf("%s%v", idStr, item.Title + spacesToAdd)
 			fmt.Fprintln(v, s)
 		}
 
@@ -332,6 +339,40 @@ func GoDown(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
+func ScrollUp(g *gocui.Gui, v *gocui.View) error {
+	if v != nil {
+		cx, cy := v.Cursor()
+		ox, oy := v.Origin()
+		v.SetCursor(cx, cy-1)
+		v.SetOrigin(ox, oy-1)
+	}
+	return nil
+}
+
+func ScrollDown(g *gocui.Gui, v *gocui.View) error {
+	if v != nil {
+		cx, cy := v.Cursor()
+		ox, oy := v.Origin()
+		v.SetCursor(cx, cy+1)
+		v.SetOrigin(ox, oy+1)
+	}
+	return nil
+}
+
+func SelectListItem(g *gocui.Gui, v *gocui.View) error {
+	if v != nil {
+		selectListView(g, v)
+
+		_, cy := v.Cursor()
+		if cy > PAGE_SIZE-1 {
+			return nil
+		}
+		selected = cy
+		LoadContent(g, nil)
+	}
+	return nil
+}
+
 func LoadPreviewsPage(g *gocui.Gui, v *gocui.View) error {
 	if currentPage > 2 {
 		currentPage -= 1
@@ -371,17 +412,17 @@ func main() {
 		}
 	}
 
-	g, err := gocui.NewGui(gocui.OutputNormal)
+	g, err := gocui.NewGui(gocui.Output256)
 	if err != nil {
 		log.Panicln(err)
 	}
 	defer g.Close()
 
 	g.Highlight = true
-	g.Cursor = true
 	g.ASCII = false
 	g.FgColor = gocui.ColorWhite
 	g.SelFgColor = gocui.ColorGreen
+	g.Mouse = true
 
 	g.SetManagerFunc(layout)
 
@@ -422,6 +463,22 @@ func main() {
 	}
 
 	if err := g.SetKeybinding(LIST_VIEW, gocui.KeyArrowRight, gocui.ModNone, LoadNextPage); err != nil {
+		log.Panicln(err)
+	}
+
+	if err := g.SetKeybinding(LIST_VIEW, gocui.MouseLeft, gocui.ModNone, SelectListItem); err != nil {
+		log.Panicln(err)
+	}
+
+	if err := g.SetKeybinding(READER_VIEW, gocui.MouseLeft, gocui.ModNone, selectReaderView); err != nil {
+		log.Panicln(err)
+	}
+
+	if err := g.SetKeybinding(READER_VIEW, gocui.MouseWheelUp, gocui.ModNone, ScrollUp); err != nil {
+		log.Panicln(err)
+	}
+
+	if err := g.SetKeybinding(READER_VIEW, gocui.MouseWheelDown, gocui.ModNone, ScrollDown); err != nil {
 		log.Panicln(err)
 	}
 
