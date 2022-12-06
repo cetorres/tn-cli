@@ -57,7 +57,10 @@ func DownloadEvents(url string) ([]Event, error) {
 		if item.Author != nil {
 			e.Author = item.Author.Name
 		} else {
-			e.Author = "Unknown author"
+			// Get author username from the link
+			re := regexp.MustCompile(`(?:br\/)(\w+)(?:\/)`)
+			match := re.FindStringSubmatch(item.Link)
+			e.Author = match[1]
 		}
 		e.Url = item.Link
 		if len(item.Description) > 0 {
@@ -132,7 +135,7 @@ func layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = "Leitor"
+		v.Title = "[ ]"
 		v.Wrap = true
 		v.Autoscroll = false
 	}
@@ -184,9 +187,18 @@ func LoadList(g *gocui.Gui, v *gocui.View, url string) error {
 func LoadContent(g *gocui.Gui, v *gocui.View) error {
 	v2, _ := g.View(READER_VIEW)
 	v2.Clear()
-	goo := goose.New()
-	content, _ := goo.ExtractFromRawHTML(feedContent[selected].Content, feedContent[selected].Url)
-	fmt.Fprintln(v2, content.CleanedText)
+
+	v2.Title = "[ " + feedContent[selected].Author + " ]"
+	
+	fmt.Fprintln(v2, feedContent[selected].Title + "\n")
+
+	g.Update(func(g *gocui.Gui) error {
+		goo := goose.New()
+		content, _ := goo.ExtractFromURL(feedContent[selected].Url) 
+		fmt.Fprintln(v2, content.CleanedText)
+		return nil
+	})
+
 	v2.SetCursor(0, 0)
 	v2.SetOrigin(0, 0)
 	return nil
@@ -256,6 +268,8 @@ func main() {
 
 	g.Highlight = true
 	g.Cursor = true
+	g.ASCII = false
+	g.FgColor = gocui.ColorWhite
 	g.SelFgColor = gocui.ColorGreen
 
 	g.SetManagerFunc(layout)
