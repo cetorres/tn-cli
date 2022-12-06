@@ -19,23 +19,32 @@ I created this TUI app inspired by the [lazygit](https://github.com/jesseduffiel
 The project needs help with these items.
 
 - [x] Main interface created
-- [x] Load TabNews **recents** posts RSS feed
-- [x] Show feed items on the left side view
-- [x] Show content on the right side reader view
+- [x] Accessing contents API
+- [x] Load TabNews **recents** posts via API
+- [x] Show articles list on the left side view
+- [x] Show article content on the right side reader view
+- [x] Load article pages with arrows
 - [ ] Fix known bug on the left side list scroll
 - [ ] Load TabNews **relevant** posts RSS feed and add a new tab to the left side view.
 - [ ] Hide/show left side view for better reading in full screen
 - [ ] Show a bottom line with available commands and app version
-- [ ] Improve the reader view to show contents better, with `markdown` and links.
+- [x] Improve the reader view to show contents better, with `markdown` and links.
 - [ ] Add your feature to the list...
 
 ## List of commands / key bindings
 
-- **r:** refresh content
-- **q / Ctrl+C:** quit
-- **arrow up:** scroll up
-- **arrow down:** scroll down
-- **tab:** toggle selection between list / reader view
+| Action | Key |
+|--------|-----|
+| Refresh Content | <kbd>R</kbd> |
+| Quit | <kbd>Ctrl+C</kbd>, <kbd>Q</kbd> |
+| Scroll Up | <kbd>↑</kbd> |
+| Scroll Down | <kbd>↓</kbd> |
+| Toggle Views | <kbd>tab</kbd> |
+| Select List View | <kbd>1</kbd> |
+| Select Reader View | <kbd>2</kbd> |
+| Next Page | <kbd>→</kbd> |
+| Previous Page | <kbd>←</kbd> |
+
 ## Preview
 
 ![Preview](screenshot.png)
