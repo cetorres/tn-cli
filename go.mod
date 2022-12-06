@@ -1,4 +1,4 @@
-module cetorres/tb-cli
+module cetorres/tn-cli
 
 go 1.19
 
