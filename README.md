@@ -40,4 +40,4 @@ The project needs help with these items.
 
 ![Preview](screenshot.png)
 
-[![asciicast](https://asciinema.org/a/542879.svg)](https://asciinema.org/a/542879)
+[![asciicast](https://asciinema.org/a/UynC0sC8KUgo9jABZ0xQKBiaM.svg)](https://asciinema.org/a/UynC0sC8KUgo9jABZ0xQKBiaM)
