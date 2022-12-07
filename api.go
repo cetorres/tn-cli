@@ -3,13 +3,16 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"os"
 )
 
 const (
 	URL_API				 = "https://www.tabnews.com.br/api/v1"
 	URL_CONTENTS   = URL_API + "/contents"
 	PAGE_SIZE			 = 40
+	ARTICLES_CACHE_FILE = "./.tn-cli-articles-cache.json"
 )
 
 var (
@@ -79,4 +82,30 @@ func DownloadArticle(username string, slug string, id string) (*Article, error) 
 	cachedArticles[id] = &article
 
 	return &article, nil
+}
+
+func SaveCacheToDisk() {
+	jsonFile, err := os.Create(ARTICLES_CACHE_FILE)
+
+	if err == nil {
+		defer jsonFile.Close()
+
+		jsonData, err := json.Marshal(cachedArticles)
+	
+		if err == nil {
+			jsonFile.Write(jsonData)
+			jsonFile.Close()
+		}
+	}
+}
+
+func LoadCacheToDisk() {
+	content, err := ioutil.ReadFile(ARTICLES_CACHE_FILE)
+	if err == nil {
+		json.Unmarshal(content, &cachedArticles)
+	}
+}
+
+func ClearDiskCache() {
+	os.Remove(ARTICLES_CACHE_FILE)
 }

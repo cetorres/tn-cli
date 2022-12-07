@@ -159,6 +159,7 @@ func RefreshContent(g *gocui.Gui, v0 *gocui.View) error {
 	// Clear caches
 	cachedContents = make(map[int][]Content)
 	cachedArticles = make(map[string]*Article)
+	ClearDiskCache()
 
 	// Reset positions
 	selected = 0
@@ -313,6 +314,7 @@ func HandleClickVersion(g *gocui.Gui, v *gocui.View) error {
 }
 
 func quit(g *gocui.Gui, v *gocui.View) error {
+	SaveCacheToDisk()
 	return gocui.ErrQuit
 }
 
@@ -467,6 +469,8 @@ func main() {
 	g.FgColor = gocui.ColorWhite
 	g.SelFgColor = gocui.ColorGreen
 	g.Mouse = true
+
+	LoadCacheToDisk()
 
 	g.SetManagerFunc(layout)
 
