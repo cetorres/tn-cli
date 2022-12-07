@@ -23,8 +23,9 @@ const (
 	RECENT_ITEMS_VIEW = "recentitems"
 	RELEVANT_ITEMS_VIEW = "relevantitems"
 	OPEN_ARTICLE_VIEW = "openarticleview"
+	PAGE_NUMBER_VIEW  = "pagenumberview"
 	READER_PADDING = 1	
-	BOTTOM_HELP	   = "1-2: muda filtro, ←/→: carrega páginas, ↑/↓: cima/baixo, r: recarrega, tab: alterna quadros, i: info, q: sair"
+	BOTTOM_HELP	   = "1-2: muda filtro, ←/→: muda páginas, ↑/↓: cima/baixo, r: recarrega, tab: alterna quadros, i: info, q: sair"
 	APP_LOGO			 = `
  _                    _ _ 
 | |_ _ __         ___| (_)
@@ -79,7 +80,7 @@ func layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = "[ " + APP_TITLE + " ]"
+		v.Title = APP_TITLE
 		v.Editable = false
 		v.Autoscroll = false
 		v.Wrap = false
@@ -92,8 +93,8 @@ func layout(g *gocui.Gui) error {
 		})
 	}
 
-	// Setup new and relevant views (selectable)
-	if v, err := g.SetView(RELEVANT_ITEMS_VIEW, 15, -1, 28, 1); err != nil {
+	// Set up new and relevant views (selectable)
+	if v, err := g.SetView(RELEVANT_ITEMS_VIEW, 10, -1, 21, 1); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -101,9 +102,9 @@ func layout(g *gocui.Gui) error {
 		v.Frame = false
 		v.Highlight = true
 		v.SelFgColor = gocui.ColorCyan
-		fmt.Fprintln(v, "[Relevantes]")
+		fmt.Fprintln(v, "Relevantes")
 	}
-	if v, err := g.SetView(RECENT_ITEMS_VIEW, 30, -1, 41, 1); err != nil {
+	if v, err := g.SetView(RECENT_ITEMS_VIEW, 21, -1, 30, 1); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -111,8 +112,20 @@ func layout(g *gocui.Gui) error {
 		v.Frame = false
 		// v.Highlight = true
 		v.SelFgColor = gocui.ColorCyan
-		fmt.Fprintln(v, "[Recentes]")
+		fmt.Fprintln(v, "Recentes")
 	}
+
+	// Set up page number view
+	// pageNumberStr := fmt.Sprintf("Page %d", currentPage)
+	// if v, err := g.SetView(PAGE_NUMBER_VIEW, maxX/3-3-len(pageNumberStr), maxY-3, maxX/3-2, maxY-1); err != nil {
+	// 	if err != gocui.ErrUnknownView {
+	// 		return err
+	// 	}
+	// 	v.Wrap = false
+	// 	v.Frame = false
+	// 	fmt.Fprintln(v, pageNumberStr)
+	// }
+	UpdatePageNumber(g)
 
 	// Set up reader view
 	if v, err := g.SetView(READER_VIEW, maxX/3, 0, maxX-1, maxY-2); err != nil {
@@ -125,7 +138,7 @@ func layout(g *gocui.Gui) error {
 	}
 
 	// Set up open article view
-	openArticleStr := "[a: abrir na web]"
+	openArticleStr := "a: abrir na web"
 	if v, err := g.SetView(OPEN_ARTICLE_VIEW, maxX-len(openArticleStr)-3, maxY-3, maxX-2, maxY-1); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
@@ -243,10 +256,11 @@ func LoadContent(g *gocui.Gui, v *gocui.View) error {
 
 	// View title (username)
 	tabcoin := "tabcoins"
-	if contents[selected].Tabcoins <= 1 {
+	if contents[selected].Tabcoins == 0 || contents[selected].Tabcoins == 1 {
 		tabcoin = "tabcoin"
-	} //├ ┤ ─
-	v2.Title = fmt.Sprintf("[ %s ]─[%d %s]─[%s]", contents[selected].OwnerUsername, contents[selected].Tabcoins, tabcoin, contents[selected].PublishedAt.Format(time.RFC822))
+	}
+	tz, _ := time.LoadLocation("Local")
+	v2.Title = fmt.Sprintf("%s (%d %s) (%s)", contents[selected].OwnerUsername, contents[selected].Tabcoins, tabcoin, contents[selected].PublishedAt.In(tz).Format(time.RFC822))
 
 	// Markdown options
 	maxX, _ := v2.Size()
@@ -325,6 +339,21 @@ func LoadRecent(g *gocui.Gui, v0 *gocui.View) error {
 	currentStrategy = "new"
 	LoadList(g, v)
 
+	return nil
+}
+
+func UpdatePageNumber(g *gocui.Gui) error {
+	maxX, maxY := g.Size()
+	g.DeleteView(PAGE_NUMBER_VIEW)
+	pageNumberStr := fmt.Sprintf("Page %d", currentPage)
+	if v, err := g.SetView(PAGE_NUMBER_VIEW, maxX/3-3-len(pageNumberStr), maxY-3, maxX/3-2, maxY-1); err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		v.Wrap = false
+		v.Frame = false
+		fmt.Fprintln(v, pageNumberStr)
+	}
 	return nil
 }
 
@@ -431,6 +460,8 @@ func LoadPreviewsPage(g *gocui.Gui, v *gocui.View) error {
 	LoadList(g ,v)
 	v.SetCursor(0, 0)
 	v.SetOrigin(0, 0)
+
+	UpdatePageNumber(g)
 	
 	return nil
 }
@@ -442,6 +473,8 @@ func LoadNextPage(g *gocui.Gui, v *gocui.View) error {
 	LoadList(g ,v)
 	v.SetCursor(0, 0)
 	v.SetOrigin(0, 0)
+
+	UpdatePageNumber(g)
 	
 	return nil
 }
@@ -455,7 +488,7 @@ func ShowVersion() {
 func ShowInfo(g *gocui.Gui, v *gocui.View) error {
 	v2, _ := g.View(READER_VIEW)
 	v2.Clear()
-	v2.Title = "[ Info ]"
+	v2.Title = "Info"
 
 	v2.SetCursor(0, 0)
 	v2.SetOrigin(0, 0)
