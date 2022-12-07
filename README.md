@@ -4,8 +4,7 @@
 It is made in Go using the libraries:
 
 - [gocui](https://github.com/jroimartin/gocui) for the TUI. This is one the best TUI libraries I've even seen. Supports even mouse interaction!
-- [gofeed](https://github.com/mmcdole/gofeed) to read RSS. Easy to use RSS feed reader.
-- [GoOse](https://github.com/advancedlogic/GoOse) for HTML content / article extraction.
+- [go-term-markdown](https://github.com/MichaelMure/go-term-markdown) for Markdown rendering.
 
 I created this TUI app inspired by the [lazygit](https://github.com/jesseduffield/lazygit) great Git terminal client, that also uses **gocui**.
 

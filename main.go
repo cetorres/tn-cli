@@ -29,6 +29,14 @@ const (
 	VERSION_VIEW	 = "version"
 	READER_PADDING = 1
 	PAGE_SIZE			 = 40
+	BOTTOM_HELP	   = "1-2: seleciona quadro, ←/→: carrega páginas, ↑/↓: cima/baixo, r: recarrega, tab: alterna quadros, i: info, q: sair"
+	APP_LOGO			 = `
+ _                    _ _ 
+| |_ _ __         ___| (_)
+| __| '_ \ _____ / __| | |
+| |_| | | |_____| (__| | |
+ \__|_| |_|      \___|_|_|														
+	`
 )
 
 type Content struct {
@@ -235,7 +243,7 @@ func layout(g *gocui.Gui) error {
 		v.Autoscroll = false
 		v.FgColor = gocui.ColorBlue
 
-		fmt.Fprintln(v, "1-2: seleciona quadro, ←/→: carrega páginas, ↑/↓: cursor cima/baixo, r: recarrega, tab: alterna quadros, q: sair")
+		fmt.Fprintln(v, BOTTOM_HELP)
 	}	
 	
 	return nil
@@ -458,8 +466,25 @@ func LoadNextPage(g *gocui.Gui, v *gocui.View) error {
 }
 
 func ShowVersion() {
+	fmt.Println(APP_LOGO)
 	fmt.Println(APP_TITLE, APP_VERSION)
 	fmt.Println(APP_COPYRIGHT)
+}
+
+func ShowInfo(g *gocui.Gui, v *gocui.View) error {
+	v2, _ := g.View(READER_VIEW)
+	v2.Clear()
+	v2.Title = "[ Info ]"
+
+	infoText := fmt.Sprintf("%s\n%s\n\n%s\n%s\n\n%s", 
+		APP_LOGO,
+		APP_COPYRIGHT, 
+		"Cliente de terminal para o website TabNews (https://tabnews.com.br).",
+		"Desenvolvido em Go, usando bibliotecas gocui e go-term-markdown.",
+		"GitHub: https://github.com/cetorres/tn-cli")
+
+	fmt.Fprintln(v2, infoText)
+	return nil
 }
 
 func main() {
@@ -513,6 +538,10 @@ func main() {
 	}
 
 	if err := g.SetKeybinding("", '2', gocui.ModNone, selectReaderView); err != nil {
+		log.Panicln(err)
+	}
+
+	if err := g.SetKeybinding("", 'i', gocui.ModNone, ShowInfo); err != nil {
 		log.Panicln(err)
 	}
 
