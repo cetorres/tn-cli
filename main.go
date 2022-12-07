@@ -1,15 +1,10 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
-	"os/exec"
-	"runtime"
 	"strings"
-	"time"
 
 	markdown "github.com/MichaelMure/go-term-markdown"
 	"github.com/jroimartin/gocui"
@@ -20,9 +15,6 @@ const (
 	APP_VERSION    = "1.0"
 	APP_COPYRIGHT  = "(c) 2022 Carlos E. Torres"
 	APP_GITHUB		 = "https://github.com/cetorres/tn-cli"
-	URL_RECENTS    = "https://www.tabnews.com.br/recentes/rss"
-	URL_API				 = "https://www.tabnews.com.br/api/v1"
-	URL_CONTENTS   = URL_API + "/contents"
 	LIST_VIEW			 = "list"
 	READER_VIEW		 = "reader"
 	BOTTOM_VIEW		 = "bottom"
@@ -39,41 +31,6 @@ const (
 	`
 )
 
-type Content struct {
-	ID                string      `json:"id"`
-	OwnerID           string      `json:"owner_id"`
-	ParentID          interface{} `json:"parent_id"`
-	Slug              string      `json:"slug"`
-	Title             string      `json:"title"`
-	Status            string      `json:"status"`
-	SourceURL         interface{} `json:"source_url"`
-	CreatedAt         time.Time   `json:"created_at"`
-	UpdatedAt         time.Time   `json:"updated_at"`
-	PublishedAt       time.Time   `json:"published_at"`
-	DeletedAt         interface{} `json:"deleted_at"`
-	Tabcoins          int         `json:"tabcoins"`
-	OwnerUsername     string      `json:"owner_username"`
-	ChildrenDeepCount int         `json:"children_deep_count"`
-}
-
-type Article struct {
-	ID                string      `json:"id"`
-	OwnerID           string      `json:"owner_id"`
-	ParentID          interface{} `json:"parent_id"`
-	Slug              string      `json:"slug"`
-	Title             string      `json:"title"`
-	Body              string      `json:"body"`
-	Status            string      `json:"status"`
-	SourceURL         interface{} `json:"source_url"`
-	CreatedAt         time.Time   `json:"created_at"`
-	UpdatedAt         time.Time   `json:"updated_at"`
-	PublishedAt       time.Time   `json:"published_at"`
-	DeletedAt         interface{} `json:"deleted_at"`
-	OwnerUsername     string      `json:"owner_username"`
-	Tabcoins          int         `json:"tabcoins"`
-	ChildrenDeepCount int         `json:"children_deep_count"`
-}
-
 var (
 	viewArr = []string{LIST_VIEW, READER_VIEW}
 	active  = 0
@@ -83,70 +40,6 @@ var (
 	cachedContents = make(map[int][]Content)
 	cachedArticles = make(map[string]*Article)
 )
-
-func DownloadContent() ([]Content, error) {
-	// Return cached results if exist
-	if len(contents) > 0 && len(cachedContents) > 0 {
-		content := cachedContents[currentPage]
-		if len(content) > 0 {
-			return content, nil
-		}
-	}
-
-	// Perform HTTP request to load results
-	resp, err := http.Get(fmt.Sprintf("%s%s%d%s%d", URL_CONTENTS, "?per_page=", PAGE_SIZE, "&page=", currentPage))
-
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf(resp.Status)
-	}
-
-	defer resp.Body.Close()
-
-	var content = []Content{}
-	decoder := json.NewDecoder(resp.Body)
-	decoder.DisallowUnknownFields()
-	decoder.Decode(&content)
-
-	// Save page results into cache
-	cachedContents[currentPage] = content
-
-	return content, nil
-}
-
-func DownloadArticle(username string, slug string, id string) (*Article, error) {
-	// Return cached result if exist
-	if len(cachedArticles) > 0 {
-		article := cachedArticles[id]
-		if article != nil {
-			return article, nil
-		}
-	}
-
-	// Perform HTTP request to load results
-	resp, err := http.Get(URL_CONTENTS + "/" + username + "/" + slug)
-
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf(resp.Status)
-	}
-
-	defer resp.Body.Close()
-
-	var article = Article{}
-	decoder := json.NewDecoder(resp.Body)
-	decoder.DisallowUnknownFields()
-	decoder.Decode(&article)
-
-	// Save article into cache
-	cachedArticles[id] = &article
-
-	return &article, nil
-}
 
 func setCurrentViewOnTop(g *gocui.Gui, name string) (*gocui.View, error) {
 	if _, err := g.SetCurrentView(name); err != nil {
@@ -249,8 +142,19 @@ func layout(g *gocui.Gui) error {
 	return nil
 }
 
-func UpdateList(g *gocui.Gui, v0 *gocui.View) error {
+func RefreshContent(g *gocui.Gui, v0 *gocui.View) error {
 	v, _ := g.View(LIST_VIEW)
+
+	// Clear caches
+	cachedContents = make(map[int][]Content)
+	cachedArticles = make(map[string]*Article)
+
+	// Reset positions
+	selected = 0
+	v.SetCursor(0, 0)
+	v.SetOrigin(0, 0)
+
+	// Load content
 	g.Update(func(g *gocui.Gui) error {
 		LoadList(g, v)
 		return nil
@@ -262,6 +166,11 @@ func LoadList(g *gocui.Gui, v *gocui.View) error {
 	v.Clear()
 	v.Highlight = false
 	fmt.Fprintln(v, "Carregando...")
+
+	v2, _ := g.View(READER_VIEW)
+	v2.Clear()
+	v2.Title = "[ ]"
+	fmt.Fprintln(v2, "Carregando...")
 
 	g.Update(func(g *gocui.Gui) error {
 		content, err := DownloadContent()
@@ -297,23 +206,6 @@ func LoadList(g *gocui.Gui, v *gocui.View) error {
 	})
 	
 	return nil
-}
-
-func openbrowser(url string) {
-  var err error
-  switch runtime.GOOS {
-  case "linux":
-    err = exec.Command("xdg-open", url).Start()
-  case "windows":
-    err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
-  case "darwin":
-    err = exec.Command("open", url).Start()
-  default:
-    err = fmt.Errorf("unsupported platform")
-  }
-  if err != nil {
-    panic(err)
-  }
 }
 
 func HandleClickVersion(g *gocui.Gui, v *gocui.View) error {
@@ -385,6 +277,12 @@ func GoUp(g *gocui.Gui, v *gocui.View) error {
 }
 
 func GoDown(g *gocui.Gui, v *gocui.View) error {
+	if active == 0 {
+		if selected >= len(contents)-1 {
+			return nil
+		}
+	}
+
 	if v != nil {
 		cx, cy := v.Cursor()
 		if err := v.SetCursor(cx, cy+1); err != nil {
@@ -396,7 +294,7 @@ func GoDown(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	if active == 0 {
-		if selected == len(contents)-1 {
+		if selected >= len(contents)-1 {
 			return nil
 		}
 		selected = selected + 1
@@ -517,7 +415,7 @@ func main() {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("", 'r', gocui.ModNone, UpdateList); err != nil {
+	if err := g.SetKeybinding("", 'r', gocui.ModNone, RefreshContent); err != nil {
 		log.Panicln(err)
 	}
 

@@ -24,7 +24,7 @@ The project needs help with these items.
 - [x] Show article content on the right side reader view
 - [x] Load article pages with arrows
 - [x] Caching loaded data for faster access
-- [ ] Fix known bug on the left side list scroll
+- [x] Fix known bug on the left side list scroll
 - [ ] Load TabNews **relevant** posts RSS feed and add a new tab to the left side view.
 - [ ] Hide/show left side view for better reading in full screen
 - [x] Show a bottom line with available commands and app version
