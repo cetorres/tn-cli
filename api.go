@@ -7,9 +7,14 @@ import (
 )
 
 const (
-	URL_RECENTS    = "https://www.tabnews.com.br/recentes/rss"
 	URL_API				 = "https://www.tabnews.com.br/api/v1"
 	URL_CONTENTS   = URL_API + "/contents"
+	PAGE_SIZE			 = 40
+)
+
+var (
+	currentPage = 1
+	currentStrategy = "relevant"
 )
 
 func DownloadContent() ([]Content, error) {
@@ -22,7 +27,7 @@ func DownloadContent() ([]Content, error) {
 	}
 
 	// Perform HTTP request to load results
-	resp, err := http.Get(fmt.Sprintf("%s%s%d%s%d", URL_CONTENTS, "?per_page=", PAGE_SIZE, "&page=", currentPage))
+	resp, err := http.Get(fmt.Sprintf("%s%s%d%s%d%s%s", URL_CONTENTS, "?per_page=", PAGE_SIZE, "&page=", currentPage, "&strategy=",  currentStrategy))
 
 	if err != nil {
 		return nil, err
