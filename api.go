@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	URL_API				 = "https://www.tabnews.com.br/api/v1"
+	URL_SITE			 = "https://www.tabnews.com.br"
+	URL_API				 = URL_SITE + "/api/v1"
 	URL_CONTENTS   = URL_API + "/contents"
 	PAGE_SIZE			 = 40
 	ARTICLES_CACHE_FILE = "./.tn-cli-articles-cache.json"

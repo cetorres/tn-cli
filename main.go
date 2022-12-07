@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	markdown "github.com/MichaelMure/go-term-markdown"
 	"github.com/jroimartin/gocui"
@@ -21,6 +22,7 @@ const (
 	VERSION_VIEW	 = "version"
 	RECENT_ITEMS_VIEW = "recentitems"
 	RELEVANT_ITEMS_VIEW = "relevantitems"
+	OPEN_ARTICLE_VIEW = "openarticleview"
 	READER_PADDING = 1	
 	BOTTOM_HELP	   = "1-2: muda filtro, ←/→: carrega páginas, ↑/↓: cima/baixo, r: recarrega, tab: alterna quadros, i: info, q: sair"
 	APP_LOGO			 = `
@@ -91,7 +93,7 @@ func layout(g *gocui.Gui) error {
 	}
 
 	// Setup new and relevant views (selectable)
-	if v, err := g.SetView(RELEVANT_ITEMS_VIEW, 14, -1, 25, 1); err != nil {
+	if v, err := g.SetView(RELEVANT_ITEMS_VIEW, 15, -1, 28, 1); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -99,9 +101,9 @@ func layout(g *gocui.Gui) error {
 		v.Frame = false
 		v.Highlight = true
 		v.SelFgColor = gocui.ColorCyan
-		fmt.Fprintln(v, "Relevantes")
+		fmt.Fprintln(v, "[Relevantes]")
 	}
-	if v, err := g.SetView(RECENT_ITEMS_VIEW, 26, -1, 35, 1); err != nil {
+	if v, err := g.SetView(RECENT_ITEMS_VIEW, 30, -1, 41, 1); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -109,7 +111,7 @@ func layout(g *gocui.Gui) error {
 		v.Frame = false
 		// v.Highlight = true
 		v.SelFgColor = gocui.ColorCyan
-		fmt.Fprintln(v, "Recentes")
+		fmt.Fprintln(v, "[Recentes]")
 	}
 
 	// Set up reader view
@@ -120,6 +122,20 @@ func layout(g *gocui.Gui) error {
 		v.Title = ""
 		v.Wrap = true
 		v.Autoscroll = false
+	}
+
+	// Set up open article view
+	openArticleStr := "[a: abrir na web]"
+	if v, err := g.SetView(OPEN_ARTICLE_VIEW, maxX-len(openArticleStr)-3, maxY-3, maxX-2, maxY-1); err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		v.Wrap = false
+		v.Frame = false
+		v.Autoscroll = false
+		v.FgColor = gocui.ColorCyan
+
+		fmt.Fprintln(v, openArticleStr)
 	}
 
 	// Set up version view
@@ -226,7 +242,11 @@ func LoadContent(g *gocui.Gui, v *gocui.View) error {
 	fmt.Fprintln(v2, "Carregando...")
 
 	// View title (username)
-	v2.Title = "[ " + contents[selected].OwnerUsername + " ]"
+	tabcoin := "tabcoins"
+	if contents[selected].Tabcoins <= 1 {
+		tabcoin = "tabcoin"
+	} //├ ┤ ─
+	v2.Title = fmt.Sprintf("[ %s ]─[%d %s]─[%s]", contents[selected].OwnerUsername, contents[selected].Tabcoins, tabcoin, contents[selected].PublishedAt.Format(time.RFC822))
 
 	// Markdown options
 	maxX, _ := v2.Size()
@@ -437,6 +457,9 @@ func ShowInfo(g *gocui.Gui, v *gocui.View) error {
 	v2.Clear()
 	v2.Title = "[ Info ]"
 
+	v2.SetCursor(0, 0)
+	v2.SetOrigin(0, 0)
+
 	infoText := fmt.Sprintf("%s\n%s\n%s\n%s\n\n%s\n%s\n\n%s", 
 		APP_LOGO,
 		APP_TITLE + " CLI",
@@ -447,6 +470,11 @@ func ShowInfo(g *gocui.Gui, v *gocui.View) error {
 		"GitHub: https://github.com/cetorres/tn-cli")
 
 	fmt.Fprintln(v2, infoText)
+	return nil
+}
+
+func OpenArticleWeb(g *gocui.Gui, v *gocui.View) error {
+	openbrowser(URL_SITE + "/" + contents[selected].OwnerUsername + "/" + contents[selected].Slug)
 	return nil
 }
 
@@ -543,6 +571,14 @@ func main() {
 	}
 
 	if err := g.SetKeybinding(RECENT_ITEMS_VIEW, gocui.MouseLeft, gocui.ModNone, LoadRecent); err != nil {
+		log.Panicln(err)
+	}
+
+	if err := g.SetKeybinding(OPEN_ARTICLE_VIEW, gocui.MouseLeft, gocui.ModNone, OpenArticleWeb); err != nil {
+		log.Panicln(err)
+	}
+
+	if err := g.SetKeybinding("", 'a', gocui.ModNone, OpenArticleWeb); err != nil {
 		log.Panicln(err)
 	}
 
