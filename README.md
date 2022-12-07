@@ -28,7 +28,7 @@ The project needs help with these items.
 - [ ] Fix known bug on the left side list scroll
 - [ ] Load TabNews **relevant** posts RSS feed and add a new tab to the left side view.
 - [ ] Hide/show left side view for better reading in full screen
-- [ ] Show a bottom line with available commands and app version
+- [x] Show a bottom line with available commands and app version
 - [x] Improve the reader view to show contents better, with `markdown` and links.
 - [ ] Add your feature to the list...
 

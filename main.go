@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
+	"runtime"
 	"strings"
 	"time"
 
@@ -15,13 +17,16 @@ import (
 
 const (
 	APP_TITLE		   = "TabNews CLI"
-	APP_VERSION    = "1.0.0"
+	APP_VERSION    = "1.0"
 	APP_COPYRIGHT  = "(c) 2022 Carlos E. Torres"
+	APP_GITHUB		 = "https://github.com/cetorres/tn-cli"
 	URL_RECENTS    = "https://www.tabnews.com.br/recentes/rss"
 	URL_API				 = "https://www.tabnews.com.br/api/v1"
 	URL_CONTENTS   = URL_API + "/contents"
 	LIST_VIEW			 = "list"
 	READER_VIEW		 = "reader"
+	BOTTOM_VIEW		 = "bottom"
+	VERSION_VIEW	 = "version"
 	READER_PADDING = 1
 	PAGE_SIZE			 = 40
 )
@@ -174,7 +179,9 @@ func selectReaderView(g *gocui.Gui, v *gocui.View) error {
 
 func layout(g *gocui.Gui) error {
 	maxX, maxY := g.Size()
-	if v, err := g.SetView(LIST_VIEW, 0, 0, maxX/3-1, maxY-1); err != nil {
+
+	// Set up list view
+	if v, err := g.SetView(LIST_VIEW, 0, 0, maxX/3-1, maxY-2); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -193,7 +200,8 @@ func layout(g *gocui.Gui) error {
 		})
 	}
 
-	if v, err := g.SetView(READER_VIEW, maxX/3, 0, maxX-1, maxY-1); err != nil {
+	// Set up reader view
+	if v, err := g.SetView(READER_VIEW, maxX/3, 0, maxX-1, maxY-2); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -201,6 +209,34 @@ func layout(g *gocui.Gui) error {
 		v.Wrap = true
 		v.Autoscroll = false
 	}
+
+	// Set up version view
+	versionStr := "v." + APP_VERSION
+	versionViewW := len(versionStr)+2
+	if v, err := g.SetView(VERSION_VIEW, maxX-versionViewW, maxY-2, maxX-1, maxY); err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		v.Frame = false
+		v.Wrap = false
+		v.Autoscroll = false
+		v.FgColor = gocui.ColorYellow
+
+		fmt.Fprintln(v, versionStr)
+	}
+
+	// Set up bottom help view
+	if v, err := g.SetView(BOTTOM_VIEW, -1, maxY-2, maxX-versionViewW-1, maxY); err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		v.Frame = false
+		v.Wrap = false
+		v.Autoscroll = false
+		v.FgColor = gocui.ColorBlue
+
+		fmt.Fprintln(v, "1-2: seleciona quadro, ←/→: carrega páginas, ↑/↓: cursor cima/baixo, r: recarrega, tab: alterna quadros, q: sair")
+	}	
 	
 	return nil
 }
@@ -252,6 +288,28 @@ func LoadList(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	})
 	
+	return nil
+}
+
+func openbrowser(url string) {
+  var err error
+  switch runtime.GOOS {
+  case "linux":
+    err = exec.Command("xdg-open", url).Start()
+  case "windows":
+    err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+  case "darwin":
+    err = exec.Command("open", url).Start()
+  default:
+    err = fmt.Errorf("unsupported platform")
+  }
+  if err != nil {
+    panic(err)
+  }
+}
+
+func HandleClickVersion(g *gocui.Gui, v *gocui.View) error {
+	openbrowser(APP_GITHUB)
 	return nil
 }
 
@@ -481,6 +539,10 @@ func main() {
 	if err := g.SetKeybinding(READER_VIEW, gocui.MouseWheelDown, gocui.ModNone, ScrollDown); err != nil {
 		log.Panicln(err)
 	}
+
+	if err := g.SetKeybinding(VERSION_VIEW, gocui.MouseLeft, gocui.ModNone, HandleClickVersion); err != nil {
+		log.Panicln(err)
+	}	
 
 	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
 		log.Panicln(err)
