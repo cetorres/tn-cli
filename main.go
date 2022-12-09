@@ -254,7 +254,7 @@ func LoadContent(g *gocui.Gui, v *gocui.View) error {
 	v2.Clear()
 	fmt.Fprintln(v2, "Carregando...")
 
-	// View title (username)
+	// View title (username, coins, date)
 	tabcoin := "tabcoins"
 	if contents[selected].Tabcoins == 0 || contents[selected].Tabcoins == 1 {
 		tabcoin = "tabcoin"
@@ -535,85 +535,7 @@ func main() {
 
 	g.SetManagerFunc(layout)
 
-	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
-		log.Panicln(err)
-	}
-
-	if err := g.SetKeybinding("", 'q', gocui.ModNone, quit); err != nil {
-		log.Panicln(err)
-	}
-
-	if err := g.SetKeybinding("", 'r', gocui.ModNone, RefreshContent); err != nil {
-		log.Panicln(err)
-	}
-
-	if err := g.SetKeybinding("", gocui.KeyArrowUp, gocui.ModNone, GoUp); err != nil {
-		log.Panicln(err)
-	}
-
-	if err := g.SetKeybinding("", gocui.KeyArrowDown, gocui.ModNone, GoDown); err != nil {
-		log.Panicln(err)
-	}
-
-	if err := g.SetKeybinding("", gocui.KeyTab, gocui.ModNone, nextView); err != nil {
-		log.Panicln(err)
-	}
-
-	if err := g.SetKeybinding("", '1', gocui.ModNone, LoadRelevant); err != nil {
-		log.Panicln(err)
-	}
-
-	if err := g.SetKeybinding("", '2', gocui.ModNone, LoadRecent); err != nil {
-		log.Panicln(err)
-	}
-
-	if err := g.SetKeybinding("", 'i', gocui.ModNone, ShowInfo); err != nil {
-		log.Panicln(err)
-	}
-
-	if err := g.SetKeybinding(LIST_VIEW, gocui.KeyArrowLeft, gocui.ModNone, LoadPreviewsPage); err != nil {
-		log.Panicln(err)
-	}
-
-	if err := g.SetKeybinding(LIST_VIEW, gocui.KeyArrowRight, gocui.ModNone, LoadNextPage); err != nil {
-		log.Panicln(err)
-	}
-
-	if err := g.SetKeybinding(LIST_VIEW, gocui.MouseLeft, gocui.ModNone, SelectListItem); err != nil {
-		log.Panicln(err)
-	}
-
-	if err := g.SetKeybinding(READER_VIEW, gocui.MouseLeft, gocui.ModNone, selectReaderView); err != nil {
-		log.Panicln(err)
-	}
-
-	if err := g.SetKeybinding(READER_VIEW, gocui.MouseWheelUp, gocui.ModNone, ScrollUp); err != nil {
-		log.Panicln(err)
-	}
-
-	if err := g.SetKeybinding(READER_VIEW, gocui.MouseWheelDown, gocui.ModNone, ScrollDown); err != nil {
-		log.Panicln(err)
-	}
-
-	if err := g.SetKeybinding(VERSION_VIEW, gocui.MouseLeft, gocui.ModNone, HandleClickVersion); err != nil {
-		log.Panicln(err)
-	}
-	
-	if err := g.SetKeybinding(RELEVANT_ITEMS_VIEW, gocui.MouseLeft, gocui.ModNone, LoadRelevant); err != nil {
-		log.Panicln(err)
-	}
-
-	if err := g.SetKeybinding(RECENT_ITEMS_VIEW, gocui.MouseLeft, gocui.ModNone, LoadRecent); err != nil {
-		log.Panicln(err)
-	}
-
-	if err := g.SetKeybinding(OPEN_ARTICLE_VIEW, gocui.MouseLeft, gocui.ModNone, OpenArticleWeb); err != nil {
-		log.Panicln(err)
-	}
-
-	if err := g.SetKeybinding("", 'a', gocui.ModNone, OpenArticleWeb); err != nil {
-		log.Panicln(err)
-	}
+	SetKeyBindings(g)
 
 	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
 		log.Panicln(err)
