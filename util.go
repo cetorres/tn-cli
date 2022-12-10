@@ -19,6 +19,6 @@ func openbrowser(url string) {
     err = fmt.Errorf("unsupported platform")
   }
   if err != nil {
-    panic(err)
+    fmt.Println(err)
   }
 }

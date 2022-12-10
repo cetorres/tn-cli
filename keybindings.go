@@ -23,7 +23,15 @@ func SetKeyBindings(g *gocui.Gui) {
 		log.Panicln(err)
 	}
 
+	if err := g.SetKeybinding("", 'w', gocui.ModNone, GoUp); err != nil {
+		log.Panicln(err)
+	}
+
 	if err := g.SetKeybinding("", gocui.KeyArrowDown, gocui.ModNone, GoDown); err != nil {
+		log.Panicln(err)
+	}
+
+	if err := g.SetKeybinding("", 's', gocui.ModNone, GoDown); err != nil {
 		log.Panicln(err)
 	}
 
@@ -47,7 +55,15 @@ func SetKeyBindings(g *gocui.Gui) {
 		log.Panicln(err)
 	}
 
+	if err := g.SetKeybinding(LIST_VIEW, 'a', gocui.ModNone, LoadPreviewsPage); err != nil {
+		log.Panicln(err)
+	}
+
 	if err := g.SetKeybinding(LIST_VIEW, gocui.KeyArrowRight, gocui.ModNone, LoadNextPage); err != nil {
+		log.Panicln(err)
+	}
+
+	if err := g.SetKeybinding(LIST_VIEW, 'd', gocui.ModNone, LoadNextPage); err != nil {
 		log.Panicln(err)
 	}
 
@@ -83,7 +99,7 @@ func SetKeyBindings(g *gocui.Gui) {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("", 'a', gocui.ModNone, OpenArticleWeb); err != nil {
+	if err := g.SetKeybinding(READER_VIEW, 'a', gocui.ModNone, OpenArticleWeb); err != nil {
 		log.Panicln(err)
 	}
 }
