@@ -13,8 +13,8 @@ import (
 
 const (
 	APP_TITLE		   = "TabNews"
-	APP_VERSION    = "1.0"
-	APP_COPYRIGHT  = "(c) 2022 Carlos E. Torres"
+	APP_VERSION    = "1.1"
+	APP_COPYRIGHT  = "(c) 2022-2023 Carlos E. Torres"
 	APP_GITHUB		 = "https://github.com/cetorres/tn-cli"
 	LIST_VIEW			 = "list"
 	READER_VIEW		 = "reader"
