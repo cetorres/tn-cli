@@ -27,6 +27,10 @@ func SetKeyBindings(g *gocui.Gui) {
 		log.Panicln(err)
 	}
 
+	if err := g.SetKeybinding("", 'k', gocui.ModNone, GoUp); err != nil {
+		log.Panicln(err)
+	}
+  
 	if err := g.SetKeybinding("", gocui.KeyArrowDown, gocui.ModNone, GoDown); err != nil {
 		log.Panicln(err)
 	}
@@ -35,6 +39,10 @@ func SetKeyBindings(g *gocui.Gui) {
 		log.Panicln(err)
 	}
 
+	if err := g.SetKeybinding("", 'j', gocui.ModNone, GoDown); err != nil {
+		log.Panicln(err)
+	}
+  
 	if err := g.SetKeybinding("", gocui.KeyTab, gocui.ModNone, nextView); err != nil {
 		log.Panicln(err)
 	}
