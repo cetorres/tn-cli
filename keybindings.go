@@ -67,11 +67,19 @@ func SetKeyBindings(g *gocui.Gui) {
 		log.Panicln(err)
 	}
 
+	if err := g.SetKeybinding(LIST_VIEW, 'h', gocui.ModNone, LoadPreviewsPage); err != nil {
+		log.Panicln(err)
+	}
+
 	if err := g.SetKeybinding(LIST_VIEW, gocui.KeyArrowRight, gocui.ModNone, LoadNextPage); err != nil {
 		log.Panicln(err)
 	}
 
 	if err := g.SetKeybinding(LIST_VIEW, 'd', gocui.ModNone, LoadNextPage); err != nil {
+		log.Panicln(err)
+	}
+
+	if err := g.SetKeybinding(LIST_VIEW, 'l', gocui.ModNone, LoadNextPage); err != nil {
 		log.Panicln(err)
 	}
 
