@@ -13,7 +13,7 @@ import (
 
 const (
 	APP_TITLE		   = "TabNews"
-	APP_VERSION    = "1.1"
+	APP_VERSION    = "1.1.1"
 	APP_COPYRIGHT  = "(c) 2022-2023 Carlos E. Torres"
 	APP_GITHUB		 = "https://github.com/cetorres/tn-cli"
 	LIST_VIEW			 = "list"
@@ -116,15 +116,6 @@ func layout(g *gocui.Gui) error {
 	}
 
 	// Set up page number view
-	// pageNumberStr := fmt.Sprintf("Page %d", currentPage)
-	// if v, err := g.SetView(PAGE_NUMBER_VIEW, maxX/3-3-len(pageNumberStr), maxY-3, maxX/3-2, maxY-1); err != nil {
-	// 	if err != gocui.ErrUnknownView {
-	// 		return err
-	// 	}
-	// 	v.Wrap = false
-	// 	v.Frame = false
-	// 	fmt.Fprintln(v, pageNumberStr)
-	// }
 	UpdatePageNumber(g)
 
 	// Set up reader view
@@ -345,7 +336,7 @@ func LoadRecent(g *gocui.Gui, v0 *gocui.View) error {
 func UpdatePageNumber(g *gocui.Gui) error {
 	maxX, maxY := g.Size()
 	g.DeleteView(PAGE_NUMBER_VIEW)
-	pageNumberStr := fmt.Sprintf("Page %d", currentPage)
+	pageNumberStr := fmt.Sprintf("página %d", currentPage)
 	if v, err := g.SetView(PAGE_NUMBER_VIEW, maxX/3-3-len(pageNumberStr), maxY-3, maxX/3-2, maxY-1); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
