@@ -16,7 +16,7 @@ I created this TUI app inspired by the [lazygit](https://github.com/jesseduffiel
 - Run: `./tn-cli`
 
 ### Pre-built binaries
-- Download the binary for your platform from the [build](build) directory.
+- Download the binary for your platform from the releases.
   
 ## Roadmap
 
