@@ -10,9 +10,14 @@ I created this TUI app inspired by the [lazygit](https://github.com/jesseduffiel
 
 ## Installation
 
+### Via source code
 - Clone the repo or download and extract the zip file.
 - Run: `go build` inside the directory to compile and create the executable.
 - Run: `./tn-cli`
+
+### Pre-built binaries
+- Download the binary for your platform from the [build](build) directory.
+  
 ## Roadmap
 
 The project needs help with these items.
