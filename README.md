@@ -8,6 +8,10 @@ It is made in Go using the libraries:
 
 I created this TUI app inspired by the [lazygit](https://github.com/jesseduffield/lazygit) great Git terminal client, that also uses **gocui**.
 
+## Demo
+
+![Demo](tn-cli-demo.gif)
+
 ## Installation
 
 ### Via source code
@@ -49,6 +53,3 @@ The project needs help with these items.
 | Next Page | <kbd>→</kbd> |
 | Previous Page | <kbd>←</kbd> |
 
-## Preview
-
-![Preview](screenshot.png)
