@@ -1,5 +1,5 @@
 # tn-cli
-**TabNews CLI** is a terminal based application (TUI) for the Brazilian news website [TabNews](https://(tabnews.com.br)).
+**TabNews CLI** is a terminal based application (TUI) for the Brazilian news website [TabNews](https://tabnews.com.br).
 
 It is made in Go using the libraries:
 
