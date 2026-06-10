@@ -1,4 +1,7 @@
 # tn-cli
+
+[![Github all releases](https://img.shields.io/github/downloads/cetorres/tn-cli/total.svg)](https://github.com/cetorres/tn-cli/releases/)
+
 **TabNews CLI** is a terminal based application (TUI) for the Brazilian news website [TabNews](https://tabnews.com.br).
 
 It is made in Go using the libraries:
